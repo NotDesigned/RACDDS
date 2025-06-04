@@ -1,0 +1,35 @@
+{
+    "name" : "app_directed_fista",
+    "common" : [
+        "../DensestSubgraph", 
+        "-t", "d", 
+        "-a", "a",
+        "-red", "appro-xy-core",
+        "-alloc", "fista",
+        "-ext", "cp", 
+        "-ver", "cp", 
+        "-dc", "t",
+        "-exp", "f",
+        "-it", "10", 
+        "-seq", "t",
+        "-map", "t",
+        "-res", "t",
+        "-width", "5",
+        "-stats", "t", 
+        "-wshrink", "t",
+        "-initwcore", "t",
+        "-adam", "t"
+    ],
+    "datasets": [
+        "ML", "MO", "TC", "MF", "OF", "AD", "AM", "email-EuAll", "wiki-Talk", "AR" , "BA", "WL" ,"ew2013", "Wen", "SK"
+    ],
+    "epss": [
+        0.1,
+        0.01,
+        0.001,
+        0.0001
+    ],
+    "expiration": 1209600,
+    "current_time": null,
+    "multiprocess": 2
+}
