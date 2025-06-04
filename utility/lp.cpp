@@ -55,6 +55,11 @@ void LinearProgramming::Init(Graph &graph, double ratio) {
             r[0][alpha[u].id_first] += 2 * sqrt(ratio) * alpha[u].weight_first;
             r[1][alpha[u].id_second] += 2 / sqrt(ratio) * alpha[u].weight_second;
         }
+        result = 0;
+        for (ui i = 0; i < n; i++) {
+            result += 1/sqrt(ratio)* r[0][i] * r[0][i] + sqrt(ratio)* r[1][i] * r[1][i];
+        }
+        result *= 0.25;
         w.assign(m, std::make_pair(0, 0));
         if (type_ == 1) {
             beta.resize(m);
@@ -302,6 +307,57 @@ void LinearProgramming::FistaIterate(double learning_rate, double t, double rati
                 r[0][alpha[i].id_second] += alpha[i].weight_second / weight[alpha[i].id_second];
             }
         }
+    }
+}
+
+void LinearProgramming::RACIterate(double learning_rate, double ratio, bool is_synchronous) {
+    cur_iter_num++;
+    if (!is_directed_){
+        throw std::runtime_error("RAC is not implemented for undirected graphs.");
+    }
+    if (is_synchronous) {
+        throw std::runtime_error("RAC's synchronous mode is unverified.");
+    }
+    ++cur_iter_num;
+    auto Proj = [](double x, double y) -> std::pair<double, double> {
+        if (fabs(x - y) <= 1) return std::make_pair((x - y + 1) / 2, (y - x + 1) / 2);
+        if (x - y > 0) return std::make_pair(1.0, 0.0);
+        return std::make_pair(0.0, 1.0);
+    };
+    double sqrr = sqrt(ratio);
+    double lr2 = learning_rate * learning_rate;
+    for(auto i:perm){
+        int u = alpha[i].id_first, v = alpha[i].id_second;
+        beta[i].weight_first = lr2 * w[i].first + alpha[i].weight_first;
+        beta[i].weight_second = lr2 * w[i].second + alpha[i].weight_second;
+
+        r[0][u] += 2 * sqrr * lr2 * w[i].first;
+        r[1][v] += 2 / sqrr * lr2 * w[i].second;
+
+        double eta = edges_count_ * learning_rate * 2;
+        auto [w1, w2] = Proj(beta[i].weight_first - 1/(2*eta) * r[0][u],
+                             beta[i].weight_second - 1/(2*eta) * r[1][v]);
+        double tmp = 1/lr2 - edges_count_/learning_rate;
+        w[i].first -= tmp * (w1 - alpha[i].weight_first);
+        w[i].second -= tmp * (w2 - alpha[i].weight_second);
+        alpha[i].weight_first = w1;
+        alpha[i].weight_second = w2;
+    }
+    last_result = result;
+    r.assign(2, std::vector<double>(nodes_count_, 0));
+    for (ui i = 0; i < edges_count_; i++) {
+        r[0][alpha[i].id_first] += 2 * sqrr * (lr2*w[i].first+alpha[i].weight_first);
+        r[1][alpha[i].id_second] += 2 / sqrr * (lr2*w[i].second+alpha[i].weight_second);
+    }
+    result = 0;
+    for (ui i = 0; i < nodes_count_; i++) {
+        result += 1/sqrr * r[0][i] * r[0][i] + sqrr * r[1][i] * r[1][i];
+    }
+    result *= 0.25;
+    r.assign(2, std::vector<double>(nodes_count_, 0));
+    for (ui i = 0; i < edges_count_; i++) {
+        r[0][alpha[i].id_first] += 2 * sqrr * alpha[i].weight_first;
+        r[1][alpha[i].id_second] += 2 / sqrr * alpha[i].weight_second;
     }
 }
 

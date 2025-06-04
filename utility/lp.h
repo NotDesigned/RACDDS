@@ -50,6 +50,8 @@ public:
 
     void MWUIterate(ui t, bool is_synchronous = false);
 
+    void RACIterate(double learning_rate, double ratio = 0, bool is_synchronous = false);
+
     void Init(Graph &graph, double ratio = 0);
 
     void sort(Graph &graph);

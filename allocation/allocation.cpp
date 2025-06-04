@@ -363,7 +363,7 @@ Allocation::directedFistaAllocation(Graph &graph, LinearProgramming &lp, ui &ite
     if (!is_init) {
         lp.Init(graph, ratio);
         is_init = true;
-        //printf("fista init\n");
+        printf("FISTA init\n");
     }
 
     int m=graph.getEdgesCount();
@@ -393,6 +393,78 @@ Allocation::directedFistaAllocation(Graph &graph, LinearProgramming &lp, ui &ite
             res = sqrt(res);
             printf("iter %d ratio=%.5lf max r=%.5lf res=%.5lf lr=%.9lf limit=%.9lf\n", lp.cur_iter_num, ratio, mx, res, lr, limit);    
         }
+    }
+}
+
+void
+Allocation::directedRACAllocation(Graph &graph, LinearProgramming &lp, ui &iter_num, bool &is_init,
+                                 std::pair<double, double> ratios, bool is_synchronous, bool is_exp, bool is_divided_by_number, bool is_logiter) {
+    double ratio;
+    if (is_divided_by_number) {
+        if (ratios.first < 1 && ratios.second > 1) {
+            ratio = 1;
+        } else if (ratios.second <= 1) {
+            ratio = (ratios.first + ratios.second) / 2;
+        } else if (ratios.first >= 1) {
+            ratio = 2 / (1 / ratios.first + 1 / ratios.second);
+        }
+    } else
+        ratio = (ratios.first + ratios.second) / 2;
+    if (!is_init) {
+        lp.Init(graph, ratio);
+        is_init = true;
+        printf("RAC init\n");
+    }
+    int m=graph.getEdgesCount();
+    static double lr=0;
+    auto indeg = graph.getInDegrees();
+    auto outdeg = graph.getOutDegrees();
+    uint maxindeg = *std::max_element(indeg.begin(), indeg.end());
+    uint maxoutdeg = *std::max_element(outdeg.begin(), outdeg.end());
+    double limit = 0.98 / (2 * std::max( sqrt (ratio) * maxoutdeg, 1 / sqrt(ratio) * maxindeg));
+
+    ui cur_iter_num = lp.cur_iter_num;
+    if (is_exp)
+        iter_num = cur_iter_num? cur_iter_num: 1;
+    lp.perm.resize(graph.getVerticesCount());
+    for(ui i = 0; i < graph.getVerticesCount(); i++)
+        lp.perm[i] = i;
+    static std::vector<Alpha> z;
+    if(!lp.cur_iter_num) z = lp.alpha;
+    for (ui t = cur_iter_num; t < cur_iter_num + iter_num; t++) {
+        if (t==cur_iter_num && lp.result > lp.last_result){
+            printf("Restart\n");
+            if(lp.cur_iter_num) lp.alpha = z;
+            lr = 1.0 / m;
+            lp.r.assign(2, std::vector<double>(graph.getVerticesCount(), 0));
+            for(int i = 0; i < m; i++){
+                lp.r[0][lp.alpha[i].id_first] += 2 * sqrt(ratio) * lp.alpha[i].weight_first;
+                lp.r[1][lp.alpha[i].id_second] += 2 / sqrt(ratio) * lp.alpha[i].weight_second;
+            }
+            lp.result = lp.last_result;
+            lp.w.assign(2, std::make_pair(0.0, 0.0));
+        }
+        else{
+            lr *= lr;
+            lr = (std::sqrt(lr*lr+4*lr)-lr)/2;
+        }
+        std::shuffle(lp.perm.begin(), lp.perm.end(), std::mt19937(std::random_device()()));
+        lp.RACIterate(lr, ratio, is_synchronous);
+        if(is_logiter){
+            double mx = 0, res = 0;
+            for(int i = 0; i < graph.getVerticesCount(); i++){
+                mx = std::max(mx, std::max(lp.r[0][i],lp.r[1][i]));
+                res += 1.0 / sqrt(ratio) * lp.r[0][i] * lp.r[0][i] + 1.0 * sqrt(ratio) * lp.r[1][i] * lp.r[1][i];
+            }
+            res = res/graph.getVerticesCount();
+            res = sqrt(res);
+            printf("iter %d ratio=%.5lf max r=%.5lf res=%.5lf lr=%.9lf limit=%.9lf\n", lp.cur_iter_num, ratio, mx, res, lr, limit);
+        } 
+    }
+    z = lp.alpha;
+    for (ui i = 0; i < m; ++i){
+        z[i].weight_first += lr*lr*lp.w[i].first;
+        z[i].weight_second += lr*lr*lp.w[i].second;
     }
 }
 

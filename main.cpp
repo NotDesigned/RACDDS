@@ -46,28 +46,24 @@ int main(int argc, char **argv) {
     ui order_type = std::stoi(args.getOption("-o"));
     ui iter_num = std::stoi(args.getOption("-it"));
     ui res_width = std::stoi(args.getOption("-width"));
-//    int parallel_thread_num = std::stoi(args.getOption("-p"));
-//    std::string ompNumThreads = "OMP_NUM_THREADS=";
-//    ompNumThreads += std::to_string(parallel_thread_num);
-//
-//    char* env = new char[ompNumThreads.size() + 1];
-//    std::strcpy(env, ompNumThreads.c_str());
-//    putenv(env);
 
     std::string red_type = args.getOption("-red");
     std::string alloc_type = args.getOption("-alloc");
     std::string ext_type = args.getOption("-ext");
     std::string ver_type = args.getOption("-ver");
-    //todo
+    
     Graph graph = Graph(is_directed);
     if(!is_sample) graph.loadGraphFromFile(args.getOption("-path"));
     else graph.loadGraphFromFile(args.getOption("-path"), is_sample, sample_rate);
     graph.removeMultiEdges(graph);
-//    graph.subgraph_density_upper_bound = 1e20;
+
     printf("io finished\nn:%u m:%u\n", graph.getVerticesCount(), graph.getEdgesCount());
+    
     auto begin = std::chrono::steady_clock::now();
+    
     graph.init();
     if(is_sample) graph.sample(sample_rate);
+
     Reduction red;
     Allocation alloc;
     Extraction ext;
@@ -97,6 +93,7 @@ int main(int argc, char **argv) {
         printf("Init w-core time: %f\n", std::chrono::duration<double>(end_init_wcore - begin_init_wcore).count());
         rep.add_total_wcore_time(std::chrono::duration<double>(end_init_wcore - begin_init_wcore).count());
     };
+
     if (!is_exact) {
         if (!is_directed) {
             if(red_type == "k-core" || red_type == "stable") graph.coreReduce(graph);
@@ -163,9 +160,9 @@ int main(int argc, char **argv) {
             RatioSelection ratio_selection(graph);
             bool is_init_ratio = false;
             ui ratio_count = 0;
-            if(is_init_wcore){
+            if(is_init_wcore)
                 wcore_init_density(graph);
-            }
+
             while (ratio_selection.ratioSelection(graph.getVerticesCount(),
                                                   ratio,
                                                   is_init_ratio,
@@ -187,8 +184,15 @@ int main(int argc, char **argv) {
                 double r = graph.subgraph_density_upper_bound;
                 FlowNetwork flow;
                 WCore w_core;
-                int lp_type= alloc_type == "fista"? 1: 0;
-                //LinearProgramming lp(is_directed, 0, 0, 0, order_type);
+
+                int lp_type;
+                if(alloc_type == "fista" || alloc_type == "rac") {
+                    lp_type = 1;
+                } else 
+                    lp_type = 0;
+
+                bool need_stable_set = (alloc_type == "fista" || alloc_type == "fw" || alloc_type == "rac");
+                bool need_xy_core_every_iter = !(alloc_type == "fista" || alloc_type == "fw" || alloc_type == "rac");                    
                 LinearProgramming lp(is_directed, lp_type, 0, 0, order_type);
                 std::vector<std::pair<VertexID, VertexID>> edges;
                 std::vector<std::vector<VertexID>> vertices(2);
@@ -232,7 +236,7 @@ int main(int argc, char **argv) {
                 }
 
                 while (flag) {
-                    if (!is_reduced || (alloc_type != "fw" && alloc_type != "fista")) {
+                    if (!is_reduced || need_xy_core_every_iter) {
                         is_reduced = true;
                         auto begin_core = std::chrono::steady_clock::now();
                         if (red_type == "exact-xy-core") {
@@ -274,15 +278,15 @@ int main(int argc, char **argv) {
                         auto end_core = std::chrono::steady_clock::now();
                         rep.add_total_xycore_time(std::chrono::duration<double>(end_core - begin_core).count());
                     }
-                    if (is_mul && (alloc_type == "fw"||alloc_type=="fista") && subgraph.subgraph_density < graph.subgraph_density) {
-                        auto begin_red = std::chrono::steady_clock::now();
-                        subgraph.subgraph_density = graph.subgraph_density;
-                        is_init_red = false;
-                        red.xyCoreReduction(subgraph, subgraph, ratio, subgraph.subgraph_density, r, is_init_red, is_dc, is_map, false, false, is_res, res_width, true);
-                        auto end_red = std::chrono::steady_clock::now();
-                        rep.add_total_xycore_time(std::chrono::duration<double>(end_red - begin_red).count());
-                    }
-                    if (alloc_type == "fw"||alloc_type=="fista") 
+                    // if (is_mul && (alloc_type == "fw"||alloc_type=="fista") && subgraph.subgraph_density < graph.subgraph_density) {
+                    //     auto begin_red = std::chrono::steady_clock::now();
+                    //     subgraph.subgraph_density = graph.subgraph_density;
+                    //     is_init_red = false;
+                    //     red.xyCoreReduction(subgraph, subgraph, ratio, subgraph.subgraph_density, r, is_init_red, is_dc, is_map, false, false, is_res, res_width, true);
+                    //     auto end_red = std::chrono::steady_clock::now();
+                    //     rep.add_total_xycore_time(std::chrono::duration<double>(end_red - begin_red).count());
+                    // }
+                    if (need_stable_set)
                         red.stableSetReduction(subgraph, lp, edges, is_stable_set, true);
                     auto begin_iter = std::chrono::steady_clock::now();
                     if (alloc_type == "greedy")
@@ -294,19 +298,17 @@ int main(int argc, char **argv) {
                     if (alloc_type == "fw")
                         alloc.directedCPAllocation(subgraph, lp, iter_num, is_init_lp, ratio, !is_seq, is_exp, is_map);
                     if (alloc_type == "fista")
-                    {
                         alloc.directedFistaAllocation(subgraph, lp, iter_num, is_init_lp, ratio, !is_seq, is_exp, is_map, is_log);
-                    }
+                    if (alloc_type == "rac")
+                        alloc.directedRACAllocation(subgraph, lp, iter_num, is_init_lp, ratio, !is_seq, is_exp, is_map, is_log);
                     auto end_iter = std::chrono::steady_clock::now();
                     rep.add_total_iter_time(std::chrono::duration<double>(end_iter - begin_iter).count());
 
                     if (ext_type == "core-appro")
                         ext.directedCoreApproExtraction(graph, subgraph, best_pos);
                     if (ext_type == "cp")
-                    {
                         ext.directedCPExtraction(subgraph, lp, best_pos, vertices, ratio, ratio_o, ratio_p, rho, rho_c,
                                                  is_map);
-                    }
                     if (ext_type == "frac")
                         ext.directedFractionalPeelingExtraction(subgraph, lp, best_pos, vertices, ratio, ratio_o, ratio_p, rho, rho_c,
                                                                 is_map);

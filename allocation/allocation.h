@@ -43,6 +43,7 @@ public:
     directedCPAllocation(Graph &graph, LinearProgramming &lp, ui &iter_num, bool &is_init,
                          std::pair<double, double> ratios, bool is_synchronous, bool is_exp, bool is_map);
     void directedFistaAllocation(Graph &graph, LinearProgramming &lp, ui &iter_num, bool &is_init, std::pair<double, double> ratios, bool is_synchronous, bool is_exp, bool is_divided_by_number, bool is_logiter);
+    void directedRACAllocation(Graph &graph, LinearProgramming &lp, ui &iter_num, bool &is_init, std::pair<double, double> ratios, bool is_synchronous, bool is_exp, bool is_divided_by_number, bool is_logiter);
     //    void directedVWApproAllocation(Graph &graph, LinearProgramming &lp, ui T, bool &is_init, std::pair<double, double> ratios)
     void UndirectedflowExactAllocation(Graph &graph, FlowNetwork &flow, double l, double r);
     void UndirectedlpAllocation(Graph &graph, LinearProgramming &lp, ui T, bool is_synchronous = false);
