@@ -2,8 +2,8 @@ cmake_minimum_required(VERSION 3.16)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_FLAGS "-O3")
-#set(CMAKE_CXX_FLAGS "-g -fsanitize=address")
+# set(CMAKE_CXX_FLAGS "-O3")
+set(CMAKE_CXX_FLAGS "-g -fsanitize=address")
 
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")

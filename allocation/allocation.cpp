@@ -411,11 +411,11 @@ Allocation::directedRACAllocation(Graph &graph, LinearProgramming &lp, ui &iter_
     } else
         ratio = (ratios.first + ratios.second) / 2;
     if (!is_init) {
-        lp.Init(graph, ratio);
+        lp.InitRAC(graph, ratio);
         is_init = true;
         printf("RAC init\n");
     }
-    int m=graph.getEdgesCount();
+    int m=graph.getEdgesCount(), n=graph.getVerticesCount();
     static double lr=0;
     auto indeg = graph.getInDegrees();
     auto outdeg = graph.getOutDegrees();
@@ -426,23 +426,11 @@ Allocation::directedRACAllocation(Graph &graph, LinearProgramming &lp, ui &iter_
     ui cur_iter_num = lp.cur_iter_num;
     if (is_exp)
         iter_num = cur_iter_num? cur_iter_num: 1;
-    lp.perm.resize(graph.getVerticesCount());
-    for(ui i = 0; i < graph.getVerticesCount(); i++)
-        lp.perm[i] = i;
-    static std::vector<Alpha> z;
-    if(!lp.cur_iter_num) z = lp.alpha;
     for (ui t = cur_iter_num; t < cur_iter_num + iter_num; t++) {
         if (t==cur_iter_num && lp.result > lp.last_result){
             printf("Restart\n");
-            if(lp.cur_iter_num) lp.alpha = z;
+            lp.RACRestart(lr, ratio);
             lr = 1.0 / m;
-            lp.r.assign(2, std::vector<double>(graph.getVerticesCount(), 0));
-            for(int i = 0; i < m; i++){
-                lp.r[0][lp.alpha[i].id_first] += 2 * sqrt(ratio) * lp.alpha[i].weight_first;
-                lp.r[1][lp.alpha[i].id_second] += 2 / sqrt(ratio) * lp.alpha[i].weight_second;
-            }
-            lp.result = lp.last_result;
-            lp.w.assign(2, std::make_pair(0.0, 0.0));
         }
         else{
             lr *= lr;
@@ -452,19 +440,14 @@ Allocation::directedRACAllocation(Graph &graph, LinearProgramming &lp, ui &iter_
         lp.RACIterate(lr, ratio, is_synchronous);
         if(is_logiter){
             double mx = 0, res = 0;
-            for(int i = 0; i < graph.getVerticesCount(); i++){
-                mx = std::max(mx, std::max(lp.r[0][i],lp.r[1][i]));
-                res += 1.0 / sqrt(ratio) * lp.r[0][i] * lp.r[0][i] + 1.0 * sqrt(ratio) * lp.r[1][i] * lp.r[1][i];
+            for(int i = 0; i < n; i++){
+                double r0= lp.r[0][i], r1 = lp.r[1][i];
+                mx = std::max(mx, std::max(r0,r1));
+                res += sqrt(ratio) * lp.sx[0][i] * lp.sx[0][i] + 1.0 / sqrt(ratio) * lp.sx[1][i] * lp.sx[1][i];
             }
-            res = res/graph.getVerticesCount();
-            res = sqrt(res);
+            res = sqrt(res/n);
             printf("iter %d ratio=%.5lf max r=%.5lf res=%.5lf lr=%.9lf limit=%.9lf\n", lp.cur_iter_num, ratio, mx, res, lr, limit);
         } 
-    }
-    z = lp.alpha;
-    for (ui i = 0; i < m; ++i){
-        z[i].weight_first += lr*lr*lp.w[i].first;
-        z[i].weight_second += lr*lr*lp.w[i].second;
     }
 }
 

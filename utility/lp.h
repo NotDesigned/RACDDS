@@ -36,12 +36,17 @@ public:
     std::vector<std::pair<double,double> > w;
 public:
     std::vector<std::vector<double>> r;
+    std::vector<std::vector<double>> sw,sx,sy;
     std::vector<Alpha> alpha;
     std::vector<Alpha> beta;
+    std::vector<Alpha> &y = alpha;
+    std::vector<Alpha> &z = beta;
     std::vector<double> weight;
 
 public:
     ~LinearProgramming();
+    void InitRAC(Graph &graph, double ratio);
+    
     explicit LinearProgramming(bool is_directed, ui type = 0, ui vertices_count = 0, ui edge_count = 0, ui sort = 0);
 
     void Iterate(double learning_rate, double ratio = 0, bool is_synchronous = false);
@@ -51,6 +56,8 @@ public:
     void MWUIterate(ui t, bool is_synchronous = false);
 
     void RACIterate(double learning_rate, double ratio = 0, bool is_synchronous = false);
+
+    void RACRestart(double &learning_rate, double ratio = 0);
 
     void Init(Graph &graph, double ratio = 0);
 
