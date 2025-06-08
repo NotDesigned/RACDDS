@@ -642,14 +642,14 @@ int main(int argc, char **argv) {
     auto end = std::chrono::steady_clock::now();
     rep.set_total_run_time(std::chrono::duration<double>(end - begin).count());
     rep.print();
-    printf("S:\n");
-    for (auto &&v: graph.vertices[0]){
-        printf("%d ", v);
-    }
-    printf("\nT:\n");
-    for (auto &&v: graph.vertices[1]){
-        printf("%d ", v);
-    }
-    printf("\n");
+    // printf("S:\n");
+    // for (auto &&v: graph.vertices[0]){
+    //     printf("%d ", v);
+    // }
+    // printf("\nT:\n");
+    // for (auto &&v: graph.vertices[1]){
+    //     printf("%d ", v);
+    // }
+    // printf("\n");
     return 0;
 };

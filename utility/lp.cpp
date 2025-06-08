@@ -391,8 +391,8 @@ void LinearProgramming::RACIterate(double learning_rate, double ratio, bool is_s
     for(auto i:perm){ 
         int u = y[i].id_first, v = y[i].id_second;
 
-        auto [y1, y2] = Proj(y[i].weight_first  - 1/(2 * m * learning_rate) * (lr2*sw[0][u] + sy[0][u]),
-                             y[i].weight_second - 1/(2 * m * learning_rate) * (lr2*sw[1][v] + sy[1][v]));
+        auto [y1, y2] = Proj(y[i].weight_first  - 1/(2 * m * learning_rate) * 2 * sqrr * (lr2 * sw[0][u] + sy[0][u]),
+                             y[i].weight_second - 1/(2 * m * learning_rate) * 2 / sqrr * (lr2 * sw[1][v] + sy[1][v]) );
         
         double w1 = w[i].first  - (1 - m * learning_rate) / lr2 * (y1 - y[i].weight_first);
         double w2 = w[i].second - (1 - m * learning_rate) / lr2 * (y2 - y[i].weight_second);
@@ -425,15 +425,14 @@ void LinearProgramming::RACIterate(double learning_rate, double ratio, bool is_s
         r[1][i] = 2 / sqrr * sx[1][i];
     }
     // -- diagnostic output
-    std::cout << "Iteration: " << cur_iter_num << ", Result: " << result << ", Last Result: " << last_result << std::endl;
-    for (ui i = 0; i < nodes_count_; ++i){
-        std::cout << "Node " << i << ": r[0] = " << r[0][i] << ", r[1] = " << r[1][i] << std::endl;
-    }
-    for (ui i = 0; i < m; ++i){
-        printf("Edge %d: (%d, %d) -> (%.5lf, %.5lf)\n", i, y[i].id_first, y[i].id_second, y[i].weight_first, y[i].weight_second);
-        // printf("                  -> (%.5lf, %.5lf)\n", i, y[i].id_first, y[i].id_second, z[i].weight_first, z[i].weight_second);
-        
-    }
+    // std::cout << "Iteration: " << cur_iter_num << ", Result: " << result << ", Last Result: " << last_result << std::endl;
+    // for (ui i = 0; i < nodes_count_; ++i){
+    //     std::cout << "Node " << i << ": r[0] = " << r[0][i] << ", r[1] = " << r[1][i] << std::endl;
+    // }
+    // for (ui i = 0; i < m; ++i){
+    //     printf("Edge %d: (%d, %d) -> (%.5lf, %.5lf)\n", i, y[i].id_first, y[i].id_second, y[i].weight_first, y[i].weight_second);
+    //     // printf("                  -> (%.5lf, %.5lf)\n", i, y[i].id_first, y[i].id_second, z[i].weight_first, z[i].weight_second);
+    // }
     // let the program sleep for 0.5s
     // std::this_thread::sleep_for(std::chrono::milliseconds(500));
 }
