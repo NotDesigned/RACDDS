@@ -417,11 +417,6 @@ Allocation::directedRACAllocation(Graph &graph, LinearProgramming &lp, ui &iter_
     }
     int m=graph.getEdgesCount(), n=graph.getVerticesCount();
     static double lr=0;
-    auto indeg = graph.getInDegrees();
-    auto outdeg = graph.getOutDegrees();
-    uint maxindeg = *std::max_element(indeg.begin(), indeg.end());
-    uint maxoutdeg = *std::max_element(outdeg.begin(), outdeg.end());
-    double limit = 0.98 / (2 * std::max( sqrt (ratio) * maxoutdeg, 1 / sqrt(ratio) * maxindeg));
 
     ui cur_iter_num = lp.cur_iter_num;
     if (is_exp)
@@ -436,7 +431,7 @@ Allocation::directedRACAllocation(Graph &graph, LinearProgramming &lp, ui &iter_
             lr *= lr;
             lr = (std::sqrt(lr*lr+4*lr)-lr)/2;
         }
-        std::shuffle(lp.perm.begin(), lp.perm.end(), std::mt19937(std::random_device()()));
+        std::shuffle(lp.perm.begin(), lp.perm.end(), std::mt19937(42));
         lp.RACIterate(lr, ratio, is_synchronous);
         if(is_logiter){
             double mx = 0, res = 0;
@@ -446,7 +441,7 @@ Allocation::directedRACAllocation(Graph &graph, LinearProgramming &lp, ui &iter_
                 res += sqrt(ratio) * lp.sx[0][i] * lp.sx[0][i] + 1.0 / sqrt(ratio) * lp.sx[1][i] * lp.sx[1][i];
             }
             res = sqrt(res/n);
-            printf("iter %d ratio=%.5lf max r=%.5lf res=%.5lf lr=%.9lf limit=%.9lf\n", lp.cur_iter_num, ratio, mx, res, lr, limit);
+            printf("iter %d ratio=%.5lf max r=%.5lf res=%.5lf lr=%.9lf\n", lp.cur_iter_num, ratio, mx, res, lr);
         } 
     }
 }

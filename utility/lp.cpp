@@ -70,7 +70,7 @@ void LinearProgramming::InitRAC(Graph &graph, double ratio) {
         for (ui i = 0; i < n; i++) {
             result += 2 * sqrt(ratio) * sx[0][i] * sx[0][i] + 2 / sqrt(ratio) * sx[1][i] * sx[1][i];
         }
-        sort(graph);
+        // sort(graph);
     } else {
         throw std::runtime_error("RAC is not implemented for undirected graphs");
     }
@@ -390,9 +390,9 @@ void LinearProgramming::RACIterate(double learning_rate, double ratio, bool is_s
     ui m = edges_count_;
     for(auto i:perm){ 
         int u = y[i].id_first, v = y[i].id_second;
-
-        auto [y1, y2] = Proj(y[i].weight_first  - 1/(2 * m * learning_rate) * 2 * sqrr * sx[0][u] ,
-                             y[i].weight_second - 1/(2 * m * learning_rate) * 2 / sqrr * sx[1][v] );
+        double eta = 2 * m * learning_rate * std::max(sqrr,1/sqrr);
+        auto [y1, y2] = Proj(y[i].weight_first  - 1/(2*eta)*2*sqrr* sx[0][u],
+                             y[i].weight_second - 1/(2*eta)/2*sqrr*sx[1][v]);
         
         double w1 = w[i].first  - (1 - m * learning_rate) / lr2 * (y1 - y[i].weight_first);
         double w2 = w[i].second - (1 - m * learning_rate) / lr2 * (y2 - y[i].weight_second);
