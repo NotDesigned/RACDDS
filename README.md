@@ -67,7 +67,7 @@ make ./DensestSubgraph
 In terms of our work, one could run the code in the following format:
 
 ```sh
-./DensestSubgraph -t d -a a -red appro-xy-core -alloc fista -ext cp -ver cp -dc t -seq t -map t -res t -width 5 -stats t -it 10 -wshrink t -initwcore t -adam t -path ./path/to/your/graph.txt -eps 0.1
+./DensestSubgraph -t d -a a -red appro-xy-core -alloc rac -ext cp -ver cp -dc t -seq t -map t -res t -width 5 -stats t -it 10 -wshrink t -initwcore t -adam t -path ./path/to/your/graph.txt -eps 0.1
 ```
 
 In these parameters, the meaningful ones in our work are:
@@ -78,7 +78,6 @@ In these parameters, the meaningful ones in our work are:
 - `-it` : the fixed iteration number. Here we set it to `10`.
 - `-wshrink` : whether to use the shrinking technique. Here we set it to `t`.
 - `-initwcore` : whether to use the initial w-core density technique. Here we set it to `t`.
-- `-adam` : whether to use the dynamic learning rate technique. Here we set it to `t`.
 - `-path` : the path of the input graph. You should set it to the path of your graph file. 
 
 ### C. Experiment
