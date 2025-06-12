@@ -67,7 +67,7 @@ make ./DensestSubgraph
 In terms of our work, one could run the code in the following format:
 
 ```sh
-./DensestSubgraph -t d -a a -red appro-xy-core -alloc rac -ext cp -ver cp -dc t -seq t -map t -res t -width 5 -stats t -it 10 -wshrink t -initwcore t -adam t -path ./path/to/your/graph.txt -eps 0.1
+./DensestSubgraph -t d -a a -red appro-xy-core -alloc rac -ext cp -ver cp -dc t -seq t -map t -res t -width 5 -stats t -it 10 -wshrink t -initwcore t -path ./path/to/your/graph.txt -eps 0.1
 ```
 
 In these parameters, the meaningful ones in our work are:
