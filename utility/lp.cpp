@@ -392,7 +392,7 @@ void LinearProgramming::RACIterate(double learning_rate, double ratio, bool is_s
         int u = y[i].id_first, v = y[i].id_second;
         double eta = 2 * m * learning_rate * std::max(sqrr,1/sqrr);
         auto [y1, y2] = Proj(y[i].weight_first  - 1/(2*eta)*2*sqrr*sx[0][u],
-                             y[i].weight_second - 1/(2*eta)/2*sqrr*sx[1][v]);
+                             y[i].weight_second - 1/(2*eta)*2/sqrr*sx[1][v]);
         
         double w1 = w[i].first  - (1 - m * learning_rate) / lr2 * (y1 - y[i].weight_first);
         double w2 = w[i].second - (1 - m * learning_rate) / lr2 * (y2 - y[i].weight_second);

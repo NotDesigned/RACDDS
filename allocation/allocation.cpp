@@ -431,7 +431,7 @@ Allocation::directedRACAllocation(Graph &graph, LinearProgramming &lp, ui &iter_
             lr *= lr;
             lr = (std::sqrt(lr*lr+4*lr)-lr)/2;
         }
-        std::shuffle(lp.perm.begin(), lp.perm.end(), std::mt19937(42));
+        // std::shuffle(lp.perm.begin(), lp.perm.end(), std::mt19937(42));
         lp.RACIterate(lr, ratio, is_synchronous);
         if(is_logiter){
             double mx = 0, res = 0;
