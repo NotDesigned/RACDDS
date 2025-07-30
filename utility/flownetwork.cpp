@@ -1,7 +1,3 @@
-//
-// Created by yy on 11/19/23.
-//
-
 #include "flownetwork.h"
 #include "graph.h"
 #include <iostream>

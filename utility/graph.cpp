@@ -1,7 +1,3 @@
-//
-// Created by yy on 23-11-13.
-//
-
 #include "graph.h"
 #include "heap.h"
 #include "app.h"

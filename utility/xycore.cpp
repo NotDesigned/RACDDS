@@ -1,7 +1,3 @@
-//
-// Created by yy on 12/16/23.
-//
-
 #include "xycore.h"
 
 XYCore::XYCore() {

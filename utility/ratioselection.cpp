@@ -1,7 +1,3 @@
-//
-// Created by yy on 12/6/23.
-//
-
 #include "ratioselection.h"
 
 RatioSelection::RatioSelection(Graph &graph) {

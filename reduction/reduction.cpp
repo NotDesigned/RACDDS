@@ -1,6 +1,3 @@
-//
-// Created by yy on 11/23/23.
-//
 #include "reduction.h"
 #include "lp.h"
 #include "heap.h"
