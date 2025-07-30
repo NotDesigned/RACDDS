@@ -1,13 +1,8 @@
-# FBAD
+# RACD
 
 This repository contains C++ codes and datasets for the paper:
 
-> A Gradient Projecting-based Approach for Efficient Densest Subgraph Discovery on Large Directed Graphs
-
-## Introduction
-
-In this paper, we study the problem of the directed densest subgraph (DDS) problem on directed graph. Presenting both practically and
-theoretically efficient DDS discovery algorithms by employing projecting FISTA and a few optimizing techniques, we have performed extensive experimental evaluation on 15 real-world large graphs and the results demonstrate the high efficiency of our algorithms.
+> Accelerated Coordinate Descent for Directed Densest Subgraph Discovery
 
 ## Environment
 
@@ -79,17 +74,3 @@ In these parameters, the meaningful ones in our work are:
 - `-wshrink` : whether to use the shrinking technique. Here we set it to `t`.
 - `-initwcore` : whether to use the initial w-core density technique. Here we set it to `t`.
 - `-path` : the path of the input graph. You should set it to the path of your graph file. 
-
-### C. Experiment
-
-First, you should put the graph file into a folder and set the dataset_path and output_path in ./experiments/experiments.py to the path of your graph file and the output folder, respectively. 
-
-Then you can run the experiments for FBAD by using the following command:
-
-```sh
-cd experiments
-python3 experiments.py app_directed_fista.json
-python3 experiments.py exact_directed_fista.json
-```
-
-And you can configure the degree of parallelism in the json file.
