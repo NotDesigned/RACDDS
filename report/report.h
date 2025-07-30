@@ -11,6 +11,7 @@ class Report{
         double total_xycore_time;
         double total_wcore_time;
         double total_verify_time;
+        long long total_edges_num;
     public:
         Report();
         void add_graph_size(int n, int m);
@@ -23,4 +24,5 @@ class Report{
         void add_total_xycore_time(double t);
         void add_total_wcore_time(double t);
         void add_total_verify_time(double t);
+        void add_total_edges_num(long long n);
 };

@@ -381,36 +381,43 @@ void LinearProgramming::RACIterate(double learning_rate, double ratio, bool is_s
     }
     ++cur_iter_num;
     auto Proj = [](double x, double y) -> std::pair<double, double> {
-        if (fabs(x - y) <= 1) return std::make_pair((x - y + 1) / 2, (y - x + 1) / 2);
-        if (x - y > 0) return std::make_pair(1.0, 0.0);
-        return std::make_pair(0.0, 1.0);
+        double clamped_diff = std::clamp(x - y, -1.0, 1.0);
+        return {(clamped_diff + 1.0) * 0.5, (1.0 - clamped_diff) * 0.5};
     };
-    double sqrr = sqrt(ratio);
-    double lr2 = learning_rate * learning_rate;
-    ui m = edges_count_;
-    for(auto i:perm){ 
-        int u = y[i].id_first, v = y[i].id_second;
-        double eta = 2 * m * learning_rate * std::max(sqrr,1/sqrr);
-        auto [y1, y2] = Proj(y[i].weight_first  - 1/(2*eta)*2*sqrr*sx[0][u],
-                             y[i].weight_second - 1/(2*eta)*2/sqrr*sx[1][v]);
+    const double sqrr = sqrt(ratio);
+    const double lr2 = learning_rate * learning_rate;
+    const ui m = edges_count_;
+    const double eta = 2 * m * learning_rate * std::max(sqrr, 1/sqrr);
+    const double inv_2eta = 1.0 / (2 * eta);
+    const double coeff = (1 - m * learning_rate) / lr2;
+    const double sqrr_factor = 2 * sqrr;
+    const double inv_sqrr_factor = 2 / sqrr;
+    
+    for(auto i: perm) {
+        const int u = y[i].id_first, v = y[i].id_second;
         
-        double w1 = w[i].first  - (1 - m * learning_rate) / lr2 * (y1 - y[i].weight_first);
-        double w2 = w[i].second - (1 - m * learning_rate) / lr2 * (y2 - y[i].weight_second);
-
+        const double old_y1 = y[i].weight_first, old_y2 = y[i].weight_second;
+        const double old_w1 = w[i].first, old_w2 = w[i].second;
+        
+        auto [y1, y2] = Proj(old_y1 - inv_2eta * sqrr_factor * sx[0][u],
+                             old_y2 - inv_2eta * inv_sqrr_factor * sx[1][v]);
+        
+        const double w1 = old_w1 - coeff * (y1 - old_y1), 
+                     w2 = old_w2 - coeff * (y2 - old_y2);
+        
         last_result = result;
+        result -= sqrr_factor * sx[0][u] * sx[0][u] + inv_sqrr_factor * sx[1][v] * sx[1][v];
         
-        result -= 2 * sqrr * sx[0][u] * sx[0][u] + 2 / sqrr * sx[1][v] * sx[1][v];
-
-        sw[0][u] = sw[0][u] + w1 - w[i].first;
-        sw[1][v] = sw[1][v] + w2 - w[i].second;
-        sy[0][u] = sy[0][u] + y1 - y[i].weight_first;
-        sy[1][v] = sy[1][v] + y2 - y[i].weight_second;
-
+        sw[0][u] += w1 - old_w1;
+        sw[1][v] += w2 - old_w2;
+        sy[0][u] += y1 - old_y1;
+        sy[1][v] += y2 - old_y2;
+        
         sx[0][u] = lr2 * sw[0][u] + sy[0][u];
         sx[1][v] = lr2 * sw[1][v] + sy[1][v];
-
-        result += 2 * sqrr * sx[0][u] * sx[0][u] + 2 / sqrr * sx[1][v] * sx[1][v];
-
+        
+        result += sqrr_factor * sx[0][u] * sx[0][u] + inv_sqrr_factor * sx[1][v] * sx[1][v];
+        
         y[i].weight_first = y1;
         y[i].weight_second = y2;
         w[i].first = w1;

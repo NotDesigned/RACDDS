@@ -6,8 +6,8 @@ import time
 import json
 
 current_time = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())
-dataset_path = ""
-output_path = ""
+dataset_path = "/mnt/data/yingli/DSD_Dataset/directed/"
+output_path = "/mnt/data/yingli/DSD_Dataset/outputs_llc/"
 multiprocess = 4
 
 # this python script is for running all the experiments for the paper

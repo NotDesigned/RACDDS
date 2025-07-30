@@ -331,6 +331,7 @@ int main(int argc, char **argv) {
                     break;
 
                 total_iter_num += lp.cur_iter_num;
+                rep.add_total_edges_num(lp.cur_iter_num* subgraph.getEdgesCount());
                 rep.add_density(total_iter_num, graph.subgraph_density);
 
                 double c;
@@ -532,6 +533,7 @@ int main(int argc, char **argv) {
 
                         rep.add_graph_size(graph.getVerticesCount(), graph.getEdgesCount()); // Report
                         rep.add_total_wcore_time(std::chrono::duration<double>(end_wcore - begin_wcore).count());
+                        rep.add_total_edges_num(subgraph.getEdgesCount());
                     }
                 }
                 while (flag) {
@@ -642,14 +644,14 @@ int main(int argc, char **argv) {
     auto end = std::chrono::steady_clock::now();
     rep.set_total_run_time(std::chrono::duration<double>(end - begin).count());
     rep.print();
-    // printf("S:\n");
-    // for (auto &&v: graph.vertices[0]){
-    //     printf("%d ", v);
-    // }
-    // printf("\nT:\n");
-    // for (auto &&v: graph.vertices[1]){
-    //     printf("%d ", v);
-    // }
-    // printf("\n");
+    printf("S:\n");
+    for (auto &&v: graph.vertices[0]){
+        printf("%d ", v);
+    }
+    printf("\nT:\n");
+    for (auto &&v: graph.vertices[1]){
+        printf("%d ", v);
+    }
+    printf("\n");
     return 0;
 };

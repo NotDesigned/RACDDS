@@ -415,7 +415,7 @@ Allocation::directedRACAllocation(Graph &graph, LinearProgramming &lp, ui &iter_
         is_init = true;
         printf("RAC init\n");
     }
-    int m=graph.getEdgesCount(), n=graph.getVerticesCount();
+    ui m=graph.getEdgesCount(), n=graph.getVerticesCount();
     static double lr=0;
 
     ui cur_iter_num = lp.cur_iter_num;
@@ -432,6 +432,26 @@ Allocation::directedRACAllocation(Graph &graph, LinearProgramming &lp, ui &iter_
             lr = (std::sqrt(lr*lr+4*lr)-lr)/2;
         }
         // std::shuffle(lp.perm.begin(), lp.perm.end(), std::mt19937(42));
+        // Instead of directly shuffle, for performance, 
+        // We can shuffle the permutation in terms of sqrt m blocks, where the indice within one block are continuous
+        ui block_size = sqrt(m);
+        ui num_blocks = (m + block_size - 1) / block_size;
+
+        std::vector<std::pair<ui, ui>> blocks;
+        for (ui i = 0; i < num_blocks; i++) {
+            ui start = i * block_size;
+            ui end = std::min(start + block_size, m);
+            blocks.emplace_back(start, end);
+        }
+
+        std::shuffle(blocks.begin(), blocks.end(), std::mt19937(42));
+
+        ui idx = 0;
+        for (auto &block : blocks) {
+            for (ui i = block.first; i < block.second; i++) {
+                lp.perm[idx++] = i;
+            }
+        }
         lp.RACIterate(lr, ratio, is_synchronous);
         if(is_logiter){
             double mx = 0, res = 0;
